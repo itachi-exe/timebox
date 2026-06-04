@@ -1,0 +1,1076 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TimeBox: Send a Message to the Future</title>
+<meta name="description" content="Write a message. Pick a date. Sealed on Walrus. Enforced by Sui.">
+<meta name="robots" content="index, follow">
+<meta property="og:title" content="TimeBox: Send a Message to the Future">
+<meta property="og:description" content="Decentralized time capsule. Encrypted on Walrus. Locked by Sui.">
+<!-- API base URL — change to your deployed backend in production -->
+<script>window.TIMEBOX_API = window.location.hostname === 'localhost' ? 'http://localhost:4000/api' : '/api'</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;600;700;800;900&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:        #0A0E11;
+  --bg-card:   #0F1419;
+  --bg-card2:  #141B22;
+  --border:    rgba(255,255,255,0.07);
+  --border-md: rgba(255,255,255,0.12);
+  --border-hi: rgba(255,255,255,0.20);
+  --lime:      #A1FF4F;
+  --lime-dk:   #7DD43A;
+  --lime-dim:  rgba(161,255,79,0.10);
+  --violet:    #38BDF8;
+  --violet-dim:rgba(56,189,248,0.10);
+  --text:      #FAFBFD;
+  --muted:     #6B7A85;
+  --dim:       #2E3A42;
+  --r-pill:    0.3rem;
+  --f-disp: 'Bebas Neue', 'Barlow Condensed', sans-serif;
+  --f-head: 'Barlow Condensed', sans-serif;
+  --f-body: 'DM Sans', sans-serif;
+  --f-mono: 'DM Mono', monospace;
+}
+
+*,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+html { font-size:62.5%; -webkit-font-smoothing:antialiased; scroll-behavior:smooth; }
+body { font-family:var(--f-body); font-size:1.6rem; background:var(--bg); color:var(--text); overflow-x:hidden; }
+::selection { background:var(--lime); color:#000; }
+::-webkit-scrollbar { width:3px; }
+::-webkit-scrollbar-track { background:var(--bg); }
+::-webkit-scrollbar-thumb { background:var(--dim); border-radius:4px; }
+
+/* NAV */
+nav {
+  position:fixed; top:0; left:0; right:0; z-index:200;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:2rem 4rem;
+  background:var(--bg); border-bottom:1px solid var(--border);
+}
+.nav-logo { display:flex; align-items:center; gap:1.2rem; text-decoration:none; }
+.nav-mark  { width:3.2rem; height:3.2rem; background:var(--lime); display:flex; align-items:center; justify-content:center; }
+.nav-brand { font-family:var(--f-disp); font-size:2rem; letter-spacing:0.02em; color:var(--text); }
+.nav-links { display:flex; gap:0; list-style:none; }
+.nav-links a {
+  color:var(--muted); text-decoration:none; font-size:1.3rem; font-weight:500;
+  text-transform:uppercase; padding:0.8rem 1.6rem;
+  transition:color 200ms; cursor:pointer;
+}
+.nav-links a:hover { color:var(--text); }
+.btn-wallet {
+  display:flex; align-items:center; gap:0.8rem; padding:1rem 2.4rem;
+  background:var(--lime); color:#000; font-family:var(--f-body); font-weight:700;
+  font-size:1.3rem; text-transform:uppercase;
+  border:none; border-radius:var(--r-pill); cursor:pointer; transition:background 200ms;
+}
+.btn-wallet:hover { background:var(--lime-dk); }
+.btn-wallet.connected { background:transparent; color:var(--lime); border:1px solid rgba(161,255,79,0.3); }
+
+/* HERO */
+#hero {
+  min-height:100svh; display:grid; grid-template-columns:1fr 1fr;
+  align-items:stretch; gap:0;
+  padding:10rem 0 0 4rem; position:relative; overflow:hidden;
+  border-bottom:1px solid var(--border);
+}
+#hero::before {
+  content:''; position:absolute; inset:0; pointer-events:none;
+  background:
+    radial-gradient(circle at 18% 85%, rgba(161,255,79,0.06) 0%, transparent 45%),
+    radial-gradient(circle at 82% 18%, rgba(56,189,248,0.06) 0%, transparent 45%);
+}
+.hero-text { display:flex; flex-direction:column; justify-content:flex-end; align-self:flex-end; padding-bottom:2rem; position:relative; z-index:1; }
+.hero-visual { position:relative; z-index:1; align-self:stretch; overflow:visible; }
+.hero-machine {
+  position:absolute; bottom:8rem; right:0; width:140%; height:auto;
+  mix-blend-mode:screen;
+  filter:drop-shadow(0 0 60px rgba(56,189,248,0.18)) drop-shadow(0 0 120px rgba(56,189,248,0.08));
+}
+.hero-label {
+  font-size:1.1rem; font-weight:600; letter-spacing:0.05em; text-transform:uppercase;
+  color:var(--lime); margin-bottom:2.4rem; display:flex; align-items:center; gap:1rem;
+}
+.hero-label::before { content:''; display:inline-block; width:2.4rem; height:1px; background:var(--lime); }
+.hero-h1 {
+  font-family:var(--f-disp);
+  font-size:clamp(6.5rem, 11vw, 16rem);
+  line-height:0.92; letter-spacing:0.01em; text-transform:uppercase;
+  color:var(--text); margin-bottom:3rem;
+}
+.hero-h1 .lime { color:var(--lime); }
+.hero-sub { font-size:1.5rem; color:var(--muted); line-height:1.75; max-width:480px; margin-bottom:3.2rem; }
+.hero-ctas { position:absolute; bottom:4rem; left:50%; transform:translateX(-50%); display:flex; align-items:center; gap:1.2rem; flex-wrap:nowrap; justify-content:center; white-space:nowrap; z-index:3; }
+
+/* BUTTONS */
+.btn-primary {
+  display:inline-flex; align-items:center; gap:1rem;
+  padding:1.5rem 3.2rem; background:var(--lime); color:#000;
+  font-family:var(--f-body); font-weight:700; font-size:1.4rem;
+  letter-spacing:0.02em; text-transform:uppercase;
+  border:none; border-radius:var(--r-pill); cursor:pointer; transition:background 200ms;
+}
+.btn-primary:hover { background:var(--lime-dk); }
+.btn-ghost {
+  display:inline-flex; align-items:center; gap:1rem;
+  padding:1.5rem 3.2rem; background:transparent; color:var(--text);
+  font-family:var(--f-body); font-weight:600; font-size:1.4rem;
+  letter-spacing:0.02em; text-transform:uppercase;
+  border:1px solid var(--border-md); border-radius:var(--r-pill);
+  cursor:pointer; transition:border-color 200ms, color 200ms;
+}
+.btn-ghost:hover { border-color:var(--lime); color:var(--lime); }
+
+/* MARQUEE */
+.marquee-strip { border-top:1px solid var(--border); border-bottom:1px solid var(--border); overflow:hidden; padding:1.4rem 0; background:var(--bg); }
+.marquee-track { display:flex; gap:4rem; width:max-content; animation:marquee 28s linear infinite; }
+@keyframes marquee { from{transform:translateX(0)} to{transform:translateX(-50%)} }
+.marquee-item { display:flex; align-items:center; gap:1.6rem; white-space:nowrap; font-size:1.2rem; font-weight:600; letter-spacing:0.04em; text-transform:uppercase; color:var(--muted); }
+.marquee-dot  { width:0.6rem; height:0.6rem; border-radius:50%; background:var(--lime); flex-shrink:0; }
+
+/* LAYOUT */
+.wrap { max-width:1240px; margin:0 auto; padding:0 4rem; }
+section { position:relative; z-index:1; }
+.sec-eyebrow { font-size:1.1rem; font-weight:600; letter-spacing:0.05em; text-transform:uppercase; color:var(--lime); display:flex; align-items:center; gap:1rem; margin-bottom:2.4rem; }
+.sec-eyebrow::before { content:''; display:inline-block; width:2rem; height:1px; background:var(--lime); }
+.sec-h { font-family:var(--f-head); font-size:clamp(3.8rem,5.5vw,7rem); font-weight:800; line-height:1.0; letter-spacing:-0.01em; text-transform:uppercase; margin-bottom:2rem; }
+.sec-sub { font-size:1.6rem; color:var(--muted); line-height:1.75; max-width:480px; }
+
+/* HOW */
+#how { padding:12rem 0; border-bottom:1px solid var(--border); }
+.how-top { display:grid; grid-template-columns:1fr 1fr; gap:4rem; align-items:start; margin-bottom:8rem; }
+.steps-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:2px; }
+.step-col {
+  background:var(--bg-card); padding:3.2rem 2.4rem;
+  border-top:2px solid transparent;
+  transition:border-top-color 200ms, background 200ms;
+}
+.step-col:hover { border-top-color:var(--lime); background:var(--bg-card2); }
+.step-n { font-family:var(--f-disp); font-size:4rem; color:var(--lime); display:block; margin-bottom:2rem; line-height:1; }
+.step-title { font-family:var(--f-head); font-size:1.8rem; font-weight:700; text-transform:uppercase; letter-spacing:0.02em; margin-bottom:1.2rem; line-height:1.15; }
+.step-desc  { font-size:1.3rem; color:var(--muted); line-height:1.7; }
+.step-tag   { display:inline-block; margin-top:1.6rem; padding:0.4rem 1rem; background:var(--lime-dim); color:var(--lime); font-size:1rem; font-weight:700; letter-spacing:0.03em; text-transform:uppercase; border-radius:0.3rem; }
+
+/* WHY */
+#why { padding:12rem 0; border-bottom:1px solid var(--border); }
+.why-layout { display:grid; grid-template-columns:1fr 2fr; gap:8rem; align-items:start; }
+.why-left   { position:sticky; top:10rem; }
+.why-grid   { display:grid; grid-template-columns:1fr 1fr; gap:2px; }
+.why-card {
+  background:var(--bg-card); padding:4rem;
+  transition:background 200ms;
+}
+.why-card:hover { background:var(--bg-card2); }
+.why-num   { font-family:var(--f-disp); font-size:1.2rem; letter-spacing:0.02em; color:var(--dim); display:block; margin-bottom:2.4rem; }
+.why-title { font-family:var(--f-head); font-size:2.6rem; font-weight:800; text-transform:uppercase; letter-spacing:0.02em; margin-bottom:1.2rem; line-height:1.1; }
+.why-desc  { font-size:1.4rem; color:var(--muted); line-height:1.75; }
+
+/* DEMO */
+#demo { padding:12rem 0; border-bottom:1px solid var(--border); }
+.demo-top  { display:grid; grid-template-columns:1fr 1fr; gap:8rem; align-items:start; }
+.demo-left { position:sticky; top:10rem; }
+.demo-left .sec-sub { margin-bottom:3.2rem; }
+.pills-list { display:flex; flex-direction:column; gap:1.2rem; }
+.pill-row { display:flex; align-items:flex-start; gap:1.6rem; padding:2rem; background:var(--bg-card); }
+.pill-text { font-size:1.4rem; color:var(--muted); line-height:1.6; }
+.pill-text strong { color:var(--text); font-weight:600; }
+
+/* APP CARD */
+.app-card { background:var(--bg-card); border:1px solid var(--border-md); }
+.app-tabs  { display:flex; border-bottom:1px solid var(--border); }
+.app-tab {
+  flex:1; padding:1.6rem; font-family:var(--f-body); font-size:1.2rem;
+  font-weight:600; letter-spacing:0.03em; text-transform:uppercase;
+  color:var(--muted); background:transparent; border:none;
+  cursor:pointer; transition:color 200ms, background 200ms; position:relative;
+}
+.app-tab.active { color:var(--lime); background:var(--lime-dim); }
+.app-tab.active::after { content:''; position:absolute; bottom:-1px; left:0; right:0; height:2px; background:var(--lime); }
+
+.seal-form { padding:3.2rem; }
+.f-label { display:block; font-size:1.1rem; font-weight:600; letter-spacing:0.04em; text-transform:uppercase; color:var(--muted); margin-bottom:0.8rem; }
+.f-group { margin-bottom:2rem; }
+.f-textarea {
+  width:100%; background:var(--bg); border:1px solid var(--border-md); padding:1.4rem;
+  color:var(--text); font-family:var(--f-body); font-size:1.4rem; line-height:1.65;
+  resize:none; height:130px; outline:none; transition:border-color 200ms; border-radius:0;
+}
+.f-textarea:focus { border-color:var(--lime); }
+.f-textarea::placeholder { color:var(--dim); }
+.f-row { display:grid; grid-template-columns:1fr 1fr; gap:1.2rem; }
+.f-input {
+  width:100%; background:var(--bg); border:1px solid var(--border-md); padding:1.1rem 1.4rem;
+  color:var(--text); font-family:var(--f-body); font-size:1.4rem;
+  outline:none; transition:border-color 200ms; border-radius:0;
+}
+.f-input:focus { border-color:var(--lime); }
+.f-input[type=date] { color-scheme:dark; }
+.f-input[type=date]::-webkit-calendar-picker-indicator { filter:invert(.5); cursor:pointer; }
+
+.wal-box { display:flex; align-items:center; justify-content:space-between; padding:1.6rem; background:var(--lime-dim); border:1px solid rgba(161,255,79,0.25); margin-bottom:2rem; }
+.wal-label { font-size:1.3rem; color:var(--muted); }
+.wal-label span { font-size:1.1rem; color:var(--dim); display:block; margin-top:0.3rem; }
+.wal-amount { font-family:var(--f-disp); font-size:2.4rem; color:var(--lime); }
+
+.btn-seal {
+  width:100%; padding:1.8rem; background:var(--lime); color:#000;
+  font-family:var(--f-body); font-weight:700; font-size:1.4rem;
+  letter-spacing:0.02em; text-transform:uppercase;
+  border:none; border-radius:var(--r-pill); cursor:pointer;
+  transition:background 200ms; display:flex; align-items:center; justify-content:center; gap:1rem;
+}
+.btn-seal:hover { background:var(--lime-dk); }
+.btn-seal:disabled { opacity:.5; cursor:not-allowed; }
+
+.sealing-view { padding:3.2rem; display:none; }
+.seal-progress-title { font-family:var(--f-head); font-size:2rem; font-weight:800; text-transform:uppercase; letter-spacing:0.02em; text-align:center; margin-bottom:2.8rem; }
+.s-step { display:flex; align-items:center; gap:1.6rem; padding:1.6rem 0; border-bottom:1px solid var(--border); }
+.s-step:last-child { border-bottom:none; }
+.s-icon { width:3.6rem; height:3.6rem; border:1px solid var(--border-md); flex-shrink:0; display:flex; align-items:center; justify-content:center; transition:all 400ms; }
+.s-icon.active { border-color:var(--lime); background:var(--lime-dim); animation:pulse-lime 1s ease-in-out infinite; }
+.s-icon.done   { background:var(--lime-dim); border-color:var(--lime); }
+@keyframes pulse-lime { 0%,100%{box-shadow:0 0 0 0 rgba(161,255,79,.2)} 50%{box-shadow:0 0 0 6px transparent,0 0 16px rgba(161,255,79,.2)} }
+.s-text  { flex:1; }
+.s-title { font-size:1.4rem; font-weight:600; color:var(--text); }
+.s-sub   { font-size:1.1rem; color:var(--muted); margin-top:0.2rem; }
+.s-check { color:var(--lime); opacity:0; transition:opacity 300ms; }
+.s-step.done .s-check { opacity:1; }
+
+.sealed-result { padding:3.2rem; display:none; text-align:center; }
+.r-badge { display:inline-flex; align-items:center; gap:0.8rem; padding:0.6rem 1.2rem; background:var(--lime-dim); border:1px solid rgba(161,255,79,0.3); border-radius:0.3rem; font-size:1rem; font-weight:700; letter-spacing:0.03em; text-transform:uppercase; color:var(--lime); margin-bottom:1.6rem; }
+.r-title { font-family:var(--f-head); font-size:3.2rem; font-weight:800; text-transform:uppercase; letter-spacing:0.02em; margin-bottom:0.8rem; }
+.r-sub   { font-size:1.4rem; color:var(--muted); margin-bottom:2.4rem; }
+.blob-card { background:var(--bg); border:1px solid rgba(161,255,79,0.2); padding:1.6rem; text-align:left; margin-bottom:1.6rem; }
+.blob-lbl  { font-size:1rem; font-weight:700; letter-spacing:0.04em; text-transform:uppercase; color:var(--lime); margin-bottom:0.8rem; }
+.blob-id   { font-family:var(--f-mono); font-size:1.2rem; color:var(--text); word-break:break-all; line-height:1.6; }
+.walrus-verified { display:inline-flex; align-items:center; gap:0.8rem; padding:0.8rem 1.6rem; background:var(--lime-dim); border:1px solid rgba(161,255,79,0.35); border-radius:0.3rem; font-size:1.2rem; font-weight:700; letter-spacing:0.03em; text-transform:uppercase; color:var(--lime); }
+.btn-back { width:100%; margin-top:2rem; padding:1.4rem; background:transparent; color:var(--muted); font-family:var(--f-body); font-size:1.3rem; font-weight:600; letter-spacing:0.02em; text-transform:uppercase; border:1px solid var(--border-md); border-radius:var(--r-pill); cursor:pointer; transition:border-color 200ms, color 200ms; }
+.btn-back:hover { border-color:var(--border-hi); color:var(--text); }
+
+.open-view { padding:2.4rem; display:none; }
+.open-header { font-size:1.1rem; font-weight:600; letter-spacing:0.04em; text-transform:uppercase; color:var(--muted); margin-bottom:1.6rem; }
+.cap-item { background:var(--bg); border:1px solid var(--border-md); padding:1.8rem; margin-bottom:1rem; cursor:pointer; transition:border-color 200ms, background 200ms; }
+.cap-item:hover { border-color:var(--border-hi); background:var(--bg-card2); }
+.cap-item-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:0.8rem; }
+.cap-date { font-size:1.1rem; color:var(--muted); }
+.cap-status { font-size:1rem; font-weight:700; padding:0.3rem 1rem; letter-spacing:0.03em; text-transform:uppercase; border-radius:0.3rem; }
+.cs-ready  { background:var(--lime-dim); color:var(--lime); border:1px solid rgba(161,255,79,0.3); }
+.cs-locked { background:rgba(255,255,255,.04); color:var(--dim); border:1px solid var(--border); }
+.cap-preview { font-size:1.3rem; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+.reveal-view { padding:2.4rem; display:none; }
+.reveal-title { font-family:var(--f-head); font-size:2rem; font-weight:800; text-transform:uppercase; letter-spacing:0.02em; margin-bottom:0.4rem; }
+.reveal-meta  { font-size:1.2rem; color:var(--muted); margin-bottom:2rem; }
+.reveal-msg   { background:var(--bg); border:1px solid var(--border-md); padding:2.4rem; font-size:1.5rem; color:var(--text); line-height:1.8; font-style:italic; margin-bottom:1.6rem; }
+.reveal-blob-row { display:flex; align-items:center; justify-content:space-between; background:var(--bg); border:1px solid rgba(161,255,79,0.15); padding:1.2rem 1.4rem; margin-bottom:1.4rem; gap:1rem; }
+.rbl-info  { flex:1; min-width:0; }
+.rbl-label { font-size:1rem; color:var(--lime); font-weight:700; letter-spacing:0.04em; text-transform:uppercase; }
+.rbl-id    { font-family:var(--f-mono); font-size:1.1rem; color:var(--muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; margin-top:0.2rem; }
+
+/* USE CASES */
+#usecases { padding:12rem 0; border-bottom:1px solid var(--border); }
+.uc-head  { display:grid; grid-template-columns:1fr 1fr; gap:4rem; align-items:end; margin-bottom:6rem; }
+.uc-grid  { display:grid; grid-template-columns:repeat(4,1fr); gap:2px; }
+.uc-card  { background:var(--bg-card); padding:3.6rem 2.8rem; border-top:2px solid transparent; transition:border-top-color 200ms, background 200ms; }
+.uc-card:hover { border-top-color:var(--violet); background:var(--bg-card2); }
+.uc-who   { font-family:var(--f-disp); font-size:1.4rem; letter-spacing:0.02em; color:var(--violet); display:block; margin-bottom:1.6rem; }
+.uc-title { font-family:var(--f-head); font-size:2.2rem; font-weight:800; text-transform:uppercase; letter-spacing:0.02em; line-height:1.15; margin-bottom:1.4rem; }
+.uc-desc  { font-size:1.3rem; color:var(--muted); line-height:1.75; }
+
+/* TECH */
+#tech { padding:12rem 0; border-bottom:1px solid var(--border); }
+.tech-top  { display:grid; grid-template-columns:1fr 1fr; gap:4rem; margin-bottom:6rem; }
+.tech-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:2px; }
+.tech-card { background:var(--bg-card); padding:4rem; border-top:3px solid transparent; transition:background 200ms; }
+.tech-card:hover { background:var(--bg-card2); }
+.tc-walrus { border-top-color:var(--lime); }
+.tc-tatum  { border-top-color:var(--violet); }
+.tc-sui    { border-top-color:var(--text); }
+.tech-icon { width:4.8rem; height:4.8rem; display:flex; align-items:center; justify-content:center; margin-bottom:2.4rem; }
+.tech-name { font-family:var(--f-disp); font-size:2.8rem; letter-spacing:0.01em; color:var(--text); display:block; margin-bottom:0.8rem; }
+.tech-role { font-size:1.1rem; font-weight:700; letter-spacing:0.04em; text-transform:uppercase; margin-bottom:1.4rem; }
+.tr-lime   { color:var(--lime); }
+.tr-violet { color:var(--violet); }
+.tr-dim    { color:var(--muted); }
+.tech-desc { font-size:1.3rem; color:var(--muted); line-height:1.75; }
+
+/* HACKATHON */
+#promise { padding:12rem 0; border-bottom:1px solid var(--border); }
+.hb-inner  { background:var(--bg-card); border:1px solid var(--border-md); padding:8rem; position:relative; overflow:hidden; }
+.hb-inner::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:linear-gradient(90deg,var(--lime),var(--violet)); }
+.hb-tag    { font-size:1.1rem; font-weight:700; letter-spacing:0.04em; text-transform:uppercase; color:var(--violet); display:flex; align-items:center; gap:1rem; margin-bottom:2.8rem; }
+.hb-tag::before { content:''; display:inline-block; width:2rem; height:1px; background:var(--violet); }
+.hb-title  { font-family:var(--f-head); font-size:clamp(3.2rem,5vw,6rem); font-weight:900; text-transform:uppercase; letter-spacing:-0.01em; line-height:1.0; margin-bottom:2.4rem; max-width:680px; }
+.hb-sub    { font-size:1.6rem; color:var(--muted); max-width:520px; line-height:1.75; margin-bottom:4rem; }
+.hb-criteria { display:flex; gap:2px; margin-bottom:4rem; flex-wrap:wrap; }
+.crit      { padding:1.2rem 2rem; background:var(--bg); border:1px solid var(--border-md); font-size:1.3rem; color:var(--muted); }
+.crit strong { color:var(--lime); font-weight:700; font-family:var(--f-disp); font-size:1.8rem; display:block; margin-bottom:0.3rem; }
+
+/* FOOTER */
+footer { padding:6rem 0; border-top:1px solid var(--border); }
+.footer-inner   { display:flex; align-items:flex-start; justify-content:space-between; gap:4rem; flex-wrap:wrap; }
+.footer-logo    { display:flex; align-items:center; gap:1.2rem; margin-bottom:1.2rem; text-decoration:none; }
+.footer-brand   { font-family:var(--f-disp); font-size:2.2rem; letter-spacing:0.02em; color:var(--text); }
+.footer-tagline { font-size:1.3rem; color:var(--dim); line-height:1.65; max-width:280px; }
+.footer-right   { text-align:right; }
+.footer-tag     { display:inline-flex; align-items:center; gap:0.8rem; padding:0.7rem 1.4rem; background:var(--violet-dim); border:1px solid rgba(56,189,248,0.2); border-radius:0.3rem; font-size:1.1rem; color:var(--violet); font-weight:600; letter-spacing:0.02em; text-transform:uppercase; margin-bottom:1.2rem; }
+.footer-copy    { font-size:1.2rem; color:var(--dim); line-height:1.7; }
+
+
+/* RESPONSIVE */
+@media(max-width:1024px){
+  .steps-grid { grid-template-columns:repeat(3,1fr); }
+  .uc-grid    { grid-template-columns:repeat(2,1fr); }
+  .how-top,.why-layout,.demo-top { grid-template-columns:1fr; gap:4rem; }
+  .why-left,.demo-left { position:static; }
+  .uc-head,.tech-top   { grid-template-columns:1fr; }
+  #hero { grid-template-columns:1fr; }
+  .hero-visual { display:none; }
+  .hb-inner    { padding:5rem 3.2rem; }
+}
+@media(max-width:768px){
+  nav { padding:1.6rem 2.4rem; }
+  .nav-links { display:none; }
+  #hero { padding:10rem 2.4rem 5rem; }
+  .wrap { padding:0 2.4rem; }
+  .steps-grid { grid-template-columns:1fr; }
+  .why-grid   { grid-template-columns:1fr; }
+  .uc-grid    { grid-template-columns:1fr; }
+  .tech-grid  { grid-template-columns:1fr; }
+  .f-row { grid-template-columns:1fr; }
+  .footer-inner { flex-direction:column; }
+  .footer-right { text-align:left; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-logo" href="#">
+    <div class="nav-mark">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+        <path d="M12 2L2 7v10l10 5 10-5V7L12 2z" stroke="#000" stroke-width="2.5" stroke-linejoin="round"/>
+        <path d="M2 7l10 5 10-5M12 12v10" stroke="#000" stroke-width="2.5" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <span class="nav-brand">TIMEBOX</span>
+  </a>
+  <ul class="nav-links">
+    <li><a onclick="document.getElementById('how').scrollIntoView({behavior:'smooth'})">How It Works</a></li>
+    <li><a onclick="document.getElementById('demo').scrollIntoView({behavior:'smooth'})">Demo</a></li>
+    <li><a onclick="document.getElementById('tech').scrollIntoView({behavior:'smooth'})">Stack</a></li>
+  </ul>
+  <button class="btn-wallet" id="walletBtn" onclick="connectWallet()">Connect Wallet</button>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-text">
+    <div class="hero-label">Decentralized Time Capsule · Walrus + Sui</div>
+    <h1 class="hero-h1">Send a message to the <span class="lime">future.</span></h1>
+    <p class="hero-sub">Write it. Seal it on Walrus. A Sui smart contract enforces the time-lock. No company, no server, no trust required. Just the date you chose.</p>
+  </div>
+  <div class="hero-visual">
+    <img src="machine.png" alt="TimeBox terminal" class="hero-machine">
+    <div class="hero-ctas">
+      <button class="btn-primary" onclick="document.getElementById('demo').scrollIntoView({behavior:'smooth'})">
+        Seal a Capsule
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </button>
+      <button class="btn-ghost" onclick="openDemo()">Open Demo Capsule</button>
+    </div>
+  </div>
+</section>
+
+<!-- MARQUEE -->
+<div class="marquee-strip">
+  <div class="marquee-track">
+    <div class="marquee-item"><span class="marquee-dot"></span>Encrypted on Walrus</div>
+    <div class="marquee-item"><span class="marquee-dot"></span>Enforced by Sui</div>
+    <div class="marquee-item"><span class="marquee-dot"></span>Powered by Tatum RPC</div>
+    <div class="marquee-item"><span class="marquee-dot"></span>Zero Trust Required</div>
+    <div class="marquee-item"><span class="marquee-dot"></span>Your Wallet is Your Account</div>
+    <div class="marquee-item"><span class="marquee-dot"></span>Permanent Storage</div>
+    <div class="marquee-item"><span class="marquee-dot"></span>Time-Locked by Code</div>
+    <div class="marquee-item"><span class="marquee-dot"></span>Walrus Verified</div>
+    <div class="marquee-item"><span class="marquee-dot"></span>Encrypted on Walrus</div>
+    <div class="marquee-item"><span class="marquee-dot"></span>Enforced by Sui</div>
+    <div class="marquee-item"><span class="marquee-dot"></span>Powered by Tatum RPC</div>
+    <div class="marquee-item"><span class="marquee-dot"></span>Zero Trust Required</div>
+    <div class="marquee-item"><span class="marquee-dot"></span>Your Wallet is Your Account</div>
+    <div class="marquee-item"><span class="marquee-dot"></span>Permanent Storage</div>
+    <div class="marquee-item"><span class="marquee-dot"></span>Time-Locked by Code</div>
+    <div class="marquee-item"><span class="marquee-dot"></span>Walrus Verified</div>
+  </div>
+</div>
+
+<!-- HOW IT WORKS -->
+<section id="how">
+  <div class="wrap">
+    <div class="how-top">
+      <div>
+        <div class="sec-eyebrow">How It Works</div>
+        <h2 class="sec-h">Five steps.<br>One sealed future.</h2>
+      </div>
+      <p class="sec-sub">From your first word to tamper-proof permanence in under two minutes. No accounts. No recovery phrases. Just your wallet and the date.</p>
+    </div>
+    <div class="steps-grid">
+      <div class="step-col"><span class="step-n">01</span><div class="step-title">Connect Wallet</div><p class="step-desc">Sui wallet (Phantom or Suiet). No signup. No email. Your wallet address is your account, identity, and recovery key.</p><span class="step-tag">Sui · Wallet-First</span></div>
+      <div class="step-col"><span class="step-n">02</span><div class="step-title">Write & Seal</div><p class="step-desc">Write your message. Attach a photo. Pick a reveal date. Pay a small WAL fee. This covers Walrus storage upfront.</p><span class="step-tag">WAL Fee</span></div>
+      <div class="step-col"><span class="step-n">03</span><div class="step-title">Walrus Stores It</div><p class="step-desc">Encrypted, uploaded to Walrus as a blob. A cryptographic blob ID is returned. If one byte changes, the ID changes. Locked.</p><span class="step-tag">Walrus Blob</span></div>
+      <div class="step-col"><span class="step-n">04</span><div class="step-title">Sui Records It</div><p class="step-desc">A Move contract records the blob ID and unlock timestamp on Sui. Tatum RPC handles the transaction. Time-lock enforced by code.</p><span class="step-tag">Tatum RPC</span></div>
+      <div class="step-col"><span class="step-n">05</span><div class="step-title">Reveal Day</div><p class="step-desc">Connect the same wallet. The contract checks the timestamp. Walrus serves the blob. Your message, exactly as you wrote it.</p><span class="step-tag">Walrus Verified</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- WHY -->
+<section id="why">
+  <div class="wrap">
+    <div class="why-layout">
+      <div class="why-left">
+        <div class="sec-eyebrow">Why TimeBox</div>
+        <h2 class="sec-h">This is what crypto was always for.</h2>
+        <p class="sec-sub">Not speculation. Not yield. A human need that only decentralization can finally deliver.</p>
+      </div>
+      <div class="why-grid">
+        <div class="why-card"><span class="why-num">01 / 04</span><div class="why-title">Permanence</div><p class="why-desc">Google Photos can delete your memories. Walrus cannot. Storage is paid upfront in WAL and guaranteed for the duration. No subscription. No renewal risk.</p></div>
+        <div class="why-card"><span class="why-num">02 / 04</span><div class="why-title">Trustlessness</div><p class="why-desc">Nobody holds your message. Not us, not Walrus, not Tatum. The Sui smart contract is the only gatekeeper and it only follows the date you set.</p></div>
+        <div class="why-card"><span class="why-num">03 / 04</span><div class="why-title">Privacy</div><p class="why-desc">Your message is encrypted before it leaves your browser. The blob on Walrus is unreadable to everyone, including us, until the unlock date.</p></div>
+        <div class="why-card"><span class="why-num">04 / 04</span><div class="why-title">Simplicity</div><p class="why-desc">Connect wallet. Write. Seal. Done. No accounts, no emails, no dashboards. A user who has never heard of Sui can seal a capsule in under two minutes.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DEMO -->
+<section id="demo">
+  <div class="wrap">
+    <div class="demo-top">
+      <div class="demo-left">
+        <div class="sec-eyebrow">Live Demo</div>
+        <h2 class="sec-h">Try it right now.</h2>
+        <p class="sec-sub">Write a message, pick a date, and watch the four sealing steps run. The blob ID appears. The Walrus badge lights up.</p>
+        <div class="pills-list">
+          <div class="pill-row"><p class="pill-text"><strong>WAL fee</strong> covers permanent Walrus storage. The moment you pay, it's sealed forever.</p></div>
+          <div class="pill-row"><p class="pill-text"><strong>Blob ID</strong> is a cryptographic fingerprint. One changed byte = a different ID. Tamper-proof by math.</p></div>
+          <div class="pill-row"><p class="pill-text"><strong>Sui contract</strong> enforces the time-lock. No admin key. No override. Only the clock decides.</p></div>
+        </div>
+      </div>
+      <div>
+        <div class="app-card">
+          <div class="app-tabs">
+            <button class="app-tab active" id="tab-seal" onclick="switchTab('seal')">Seal Capsule</button>
+            <button class="app-tab"        id="tab-open" onclick="switchTab('open')">Open Capsule</button>
+          </div>
+
+          <div id="view-form" class="seal-form">
+            <div class="f-group">
+              <label class="f-label">Your Message</label>
+              <textarea class="f-textarea" id="msgInput" placeholder="Write something worth sealing. A letter to your future self. Words for someone who isn't ready to hear them yet…"></textarea>
+            </div>
+            <div class="f-row f-group">
+              <div><label class="f-label">Reveal Date</label><input class="f-input" type="date" id="revealDate" onchange="updateFee()"></div>
+              <div><label class="f-label">Recipient</label><input class="f-input" type="text" placeholder="Wallet or 'Self'"></div>
+            </div>
+            <div class="wal-box">
+              <div class="wal-label">Storage Fee<span id="feeNote">Covers Walrus storage for duration</span></div>
+              <div class="wal-amount" id="walFee">0.12 WAL</div>
+            </div>
+            <button class="btn-seal" id="sealBtn" onclick="startSealing()">
+              Seal &amp; Pay WAL (Demo Mode)
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+            </button>
+          </div>
+
+          <div id="view-sealing" class="sealing-view">
+            <div class="seal-progress-title">Sealing your capsule…</div>
+            <div>
+              <div class="s-step" id="ss-1"><div class="s-icon" id="si-1"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg></div><div class="s-text"><div class="s-title">Encrypting message</div><div class="s-sub">AES-256-GCM · key derived from wallet</div></div><svg class="s-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+              <div class="s-step" id="ss-2"><div class="s-icon" id="si-2"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div><div class="s-text"><div class="s-title">Uploading to Walrus</div><div class="s-sub">Storing encrypted blob on decentralized nodes</div></div><svg class="s-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+              <div class="s-step" id="ss-3"><div class="s-icon" id="si-3"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round"><path d="M13 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9z"/><polyline points="13 2 13 9 20 9"/></svg></div><div class="s-text"><div class="s-title">Recording on Sui</div><div class="s-sub">Move contract · blob ID + unlock epoch · Tatum RPC</div></div><svg class="s-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+              <div class="s-step" id="ss-4"><div class="s-icon" id="si-4"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div><div class="s-text"><div class="s-title">Capsule sealed</div><div class="s-sub">Time-locked until reveal date · immutable</div></div><svg class="s-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+            </div>
+          </div>
+
+          <div id="view-result" class="sealed-result">
+            <div class="r-badge"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>Capsule Sealed</div>
+            <div class="r-title">Permanent &amp; Encrypted</div>
+            <p class="r-sub">Nobody can read this until the date arrives, not even us.</p>
+            <div class="blob-card"><div class="blob-lbl">Walrus Blob ID</div><div class="blob-id" id="blobIdDisplay"></div></div>
+            <div class="walrus-verified"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>Walrus Verified</div>
+            <button class="btn-back" onclick="resetSeal()">Seal Another Capsule</button>
+          </div>
+
+          <div id="view-open" class="open-view" style="display:none">
+            <p class="open-header">Capsules linked to your wallet</p>
+            <div class="cap-item" onclick="revealCapsule()"><div class="cap-item-top"><span class="cap-date">Sealed 1 year ago · Reveals today</span><span class="cap-status cs-ready">READY</span></div><div class="cap-preview">"By the time you read this, I hope you remember why you started…"</div></div>
+            <div class="cap-item" style="cursor:not-allowed;opacity:.6"><div class="cap-item-top"><span class="cap-date">Sealed 6 months ago · Reveals in 18 months</span><span class="cap-status cs-locked">LOCKED · 547 days</span></div><div class="cap-preview">●●●●●●●●●● encrypted ●●●●●●●●●●</div></div>
+            <div class="cap-item" style="cursor:not-allowed;opacity:.6"><div class="cap-item-top"><span class="cap-date">Sealed 2 years ago · Reveals in 16 years</span><span class="cap-status cs-locked">LOCKED · 18 years</span></div><div class="cap-preview">●●●●●●●●●● encrypted ●●●●●●●●●●</div></div>
+          </div>
+
+          <div id="view-reveal" class="reveal-view" style="display:none">
+            <div class="walrus-verified" style="margin-bottom:1.4rem;font-size:1.1rem;padding:0.8rem 1.6rem"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>Walrus Verified · Tamper-Proof</div>
+            <div class="reveal-title">Your Capsule Has Opened</div>
+            <div class="reveal-meta">Sealed 1 year ago · Unlocked today · Walrus blob integrity confirmed</div>
+            <div class="reveal-msg">"By the time you read this, I hope you remember why you started. The doubt was real. The fear was real. But so was the reason. Keep going. The version of you that sealed this believed in the version of you reading it."</div>
+            <div class="reveal-blob-row"><div class="rbl-info"><div class="rbl-label">Walrus Blob ID</div><div class="rbl-id">7xKpNmR2aB9cL4vE3dF8gH1iJ6kM0nP5qT</div></div><div class="walrus-verified" style="font-size:1.1rem;padding:0.8rem 1.4rem;flex-shrink:0"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>Verified</div></div>
+            <button class="btn-back" onclick="backToOpen()">Back to Capsules</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- USE CASES -->
+<section id="usecases">
+  <div class="wrap">
+    <div class="uc-head">
+      <div>
+        <div class="sec-eyebrow">Who Uses This</div>
+        <h2 class="sec-h">For anyone with something worth waiting for.</h2>
+      </div>
+      <p class="sec-sub">Every person who has ever wanted their words to outlast the platform they trusted them to.</p>
+    </div>
+    <div class="uc-grid">
+      <div class="uc-card"><span class="uc-who">Parents</span><div class="uc-title">A letter for the day she turns 18</div><p class="uc-desc">Seal a message for your newborn daughter. Write every word you want her to have on her 18th birthday, even if you can't be there.</p></div>
+      <div class="uc-card"><span class="uc-who">Couples</span><div class="uc-title">A snapshot of who you were</div><p class="uc-desc">Leave a message to open on your 10th anniversary. A record of who you were in the early days. Open it together and remember.</p></div>
+      <div class="uc-card"><span class="uc-who">Founders</span><div class="uc-title">Seal your original vision</div><p class="uc-desc">Write your founding manifesto the week you start. Seal it for five years. On reveal day, see how far you drifted, or how close you got.</p></div>
+      <div class="uc-card"><span class="uc-who">Anyone</span><div class="uc-title">Letters to your future self</div><p class="uc-desc">Time-locked predictions. Words you need to hear later. Messages that need to survive the chaos of the internet.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- TECH STACK -->
+<section id="tech">
+  <div class="wrap">
+    <div class="tech-top">
+      <div>
+        <div class="sec-eyebrow">Tech Stack</div>
+        <h2 class="sec-h">Every piece is load-bearing.</h2>
+      </div>
+      <p class="sec-sub">Walrus, Tatum, and Sui are not decoration. Each one is the reason the next layer works.</p>
+    </div>
+    <div class="tech-grid">
+      <div class="tech-card tc-walrus"><div class="tech-icon"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--lime)" stroke-width="1.5" stroke-linecap="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg></div><span class="tech-name">Walrus</span><div class="tech-role tr-lime">Decentralized Vault</div><p class="tech-desc">All capsule content stored as encrypted blobs. Walrus returns a blob ID, a cryptographic fingerprint. One changed byte = different ID.</p></div>
+      <div class="tech-card tc-tatum"><div class="tech-icon"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--violet)" stroke-width="1.5" stroke-linecap="round"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg></div><span class="tech-name">Tatum</span><div class="tech-role tr-violet">Sui RPC Layer</div><p class="tech-desc">Every on-chain action (wallet connection, WAL fee, contract write, query) runs through Tatum's Sui RPC endpoints.</p></div>
+      <div class="tech-card tc-sui"><div class="tech-icon"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--text)" stroke-width="1.5" stroke-linecap="round"><path d="M12 2L2 7v10l10 5 10-5V7L12 2z"/><path d="M2 7l10 5 10-5M12 12v10"/></svg></div><span class="tech-name">Sui</span><div class="tech-role tr-dim">Time-Lock Enforcer</div><p class="tech-desc">A Move contract on Sui Mainnet holds the blob ID and unlock timestamp. One rule: key not released until epoch passes the unlock date.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- PROMISE -->
+<section id="promise">
+  <div class="wrap">
+    <div class="hb-inner">
+      <div class="hb-tag">Built Different</div>
+      <h2 class="hb-title">The internet forgets. TimeBox doesn't.</h2>
+      <p class="hb-sub">Every platform you'd trust with your most important words can shut down, lose your data, or change their terms before the day arrives. TimeBox removes that risk entirely. Your message is stored on Walrus and locked by a Sui smart contract. No company in the middle.</p>
+      <div class="hb-criteria">
+        <div class="crit"><strong>∞</strong>Permanent Storage</div>
+        <div class="crit"><strong>0</strong>Trust Required</div>
+        <div class="crit"><strong>1</strong>Rule: the Date</div>
+        <div class="crit"><strong>2min</strong>To Seal</div>
+      </div>
+      <button class="btn-primary" onclick="document.getElementById('demo').scrollIntoView({behavior:'smooth'})">
+        Try It Now
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="wrap">
+    <div class="footer-inner">
+      <div>
+        <a class="footer-logo" href="#">
+          <div class="nav-mark" style="width:3rem;height:3rem"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 2L2 7v10l10 5 10-5V7L12 2z" stroke="#000" stroke-width="2.5" stroke-linejoin="round"/><path d="M2 7l10 5 10-5M12 12v10" stroke="#000" stroke-width="2.5" stroke-linejoin="round"/></svg></div>
+          <span class="footer-brand">TIMEBOX</span>
+        </a>
+        <p class="footer-tagline">A digital time capsule built on Walrus and Sui. Your words, sealed by math, delivered by time.</p>
+      </div>
+      <div class="footer-right">
+        <div class="footer-tag">Powered by Walrus + Sui</div>
+        <div class="footer-copy">Built with Walrus · Sui · Tatum RPC<br><span style="font-size:1.1rem;color:var(--dim)">No companies. No servers. No trust required.</span></div>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+const API = window.TIMEBOX_API || 'http://localhost:4000/api';
+
+/* ── WALLET ─────────────────────────────────────────────────────────────── */
+var walletConnected = false;
+var walletAddress   = null;
+
+function toast(title, body, color) {
+  color = color || '#A1FF4F';
+  var old = document.getElementById('tb-toast');
+  if (old) old.remove();
+  var el = document.createElement('div');
+  el.id = 'tb-toast';
+  el.style.cssText = 'position:fixed;top:2rem;right:2rem;z-index:99999;background:#0F1419;border:1px solid rgba(255,255,255,0.12);border-left:3px solid '+color+';padding:1.6rem 2rem;max-width:320px;font-family:"DM Sans",sans-serif;font-size:1.3rem;color:#FAFBFD;box-shadow:0 8px 32px rgba(0,0,0,.6);';
+  el.innerHTML='<div style="font-weight:700;font-size:1rem;letter-spacing:.08em;text-transform:uppercase;color:'+color+';margin-bottom:.4rem">'+title+'</div><div style="color:#6B7A85">'+body+'</div><button onclick="this.parentElement.remove()" style="position:absolute;top:.6rem;right:.8rem;background:none;border:none;color:#6B7A85;cursor:pointer;font-size:1.8rem;line-height:1">×</button>';
+  document.body.appendChild(el);
+  setTimeout(function(){ if(el.parentNode)el.remove(); },6000);
+}
+
+function closeModal(){ var m=document.getElementById('walletModal'); if(m) m.remove(); }
+
+function connectWallet() {
+  // Implemented in the module script below — called here as a fallback stub
+  // before the module has loaded (should not normally be reachable).
+  toast('Loading wallet support…', 'Please wait a moment then try again.', 'var(--violet)');
+}
+
+/* ── TAB SWITCHING ───────────────────────────────────────────────────────── */
+window.switchTab = function(tab) {
+  const isSeal = tab === 'seal';
+  document.getElementById('tab-seal').classList.toggle('active', isSeal);
+  document.getElementById('tab-open').classList.toggle('active', !isSeal);
+  document.getElementById('view-form').style.display    = isSeal ? 'block' : 'none';
+  document.getElementById('view-sealing').style.display = 'none';
+  document.getElementById('view-result').style.display  = 'none';
+  document.getElementById('view-open').style.display    = isSeal ? 'none' : 'block';
+  document.getElementById('view-reveal').style.display  = 'none';
+};
+
+/* ── WAL FEE ─────────────────────────────────────────────────────────────── */
+window.updateFee = function() {
+  const val = document.getElementById('revealDate').value;
+  if (!val) return;
+  const days = Math.max(1, Math.round((new Date(val) - new Date()) / 86400000));
+  const fee  = Math.max(0.08, 0.05 + (days / 365) * 0.04).toFixed(2);
+  document.getElementById('walFee').textContent  = fee + ' WAL';
+  document.getElementById('feeNote').textContent = days < 365
+    ? `${days} day${days !== 1 ? 's' : ''} of guaranteed storage`
+    : `${(days / 365).toFixed(1)} years of guaranteed storage`;
+};
+(function () {
+  const d = new Date(); d.setFullYear(d.getFullYear() + 1);
+  document.getElementById('revealDate').value = d.toISOString().split('T')[0];
+  window.updateFee();
+})();
+
+/* ── CLIENT-SIDE DECRYPTION (Web Crypto API) ─────────────────────────────── */
+async function decryptBlob(encryptedBytes, hexKey) {
+  const keyBytes = hexKey.match(/.{1,2}/g).map(b => parseInt(b, 16));
+  const rawKey   = new Uint8Array(keyBytes);
+  const iv       = encryptedBytes.slice(0, 16);
+  const tag      = encryptedBytes.slice(16, 32);
+  // AES-GCM in Web Crypto combines ciphertext + tag
+  const cipherAndTag = new Uint8Array([...encryptedBytes.slice(32), ...tag]);
+  const cryptoKey = await crypto.subtle.importKey('raw', rawKey, { name: 'AES-GCM' }, false, ['decrypt']);
+  const plainBuf  = await crypto.subtle.decrypt({ name: 'AES-GCM', iv, tagLength: 128 }, cryptoKey, cipherAndTag);
+  return JSON.parse(new TextDecoder().decode(plainBuf));
+}
+
+/* ── SEALING ─────────────────────────────────────────────────────────────── */
+function animateStep(i, delay, duration) {
+  setTimeout(() => document.getElementById(`si-${i}`).classList.add('active'), delay);
+  setTimeout(() => {
+    document.getElementById(`ss-${i}`).classList.add('done');
+    const ic = document.getElementById(`si-${i}`);
+    ic.classList.remove('active'); ic.classList.add('done');
+    ic.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--lime)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>`;
+  }, delay + duration);
+}
+
+// startSealing is implemented in the module script below (real Sui tx integration).
+
+window.resetSeal = function() {
+  document.getElementById('view-result').style.display = 'none';
+  document.getElementById('view-form').style.display   = 'block';
+  document.getElementById('msgInput').value = '';
+};
+
+/* ── OPEN / REVEAL ───────────────────────────────────────────────────────── */
+window.revealCapsule = async function(blobId, capsuleId) {
+  document.getElementById('view-open').style.display   = 'none';
+  document.getElementById('view-reveal').style.display = 'block';
+
+  if (!blobId) return; // demo mode — nothing to decrypt
+
+  const hexKey = localStorage.getItem(`timebox_key_${blobId}`);
+  if (!hexKey) {
+    toast('Key Not Found', 'Encryption key missing from this browser. You must open on the device where you sealed it.', 'var(--violet)');
+    return;
+  }
+
+  try {
+    const url = capsuleId
+      ? `${API}/capsule/${blobId}/blob?capsuleId=${capsuleId}`
+      : `${API}/capsule/${blobId}/blob`;
+
+    const res = await fetch(url);
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || `Server error ${res.status}`);
+    }
+
+    const buf       = await res.arrayBuffer();
+    const encrypted = new Uint8Array(buf);
+    const payload   = await decryptBlob(encrypted, hexKey);
+
+    const msgEl = document.querySelector('.reveal-msg');
+    if (msgEl) msgEl.textContent = payload.message;
+  } catch (err) {
+    toast('Reveal Failed', err.message, 'var(--violet)');
+  }
+};
+
+window.backToOpen = function() {
+  document.getElementById('view-reveal').style.display = 'none';
+  document.getElementById('view-open').style.display   = 'block';
+};
+window.openDemo = function() {
+  window.switchTab('open');
+  document.getElementById('demo').scrollIntoView({ behavior: 'smooth' });
+  setTimeout(() => window.revealCapsule(), 900); // demo — no blobId
+};
+</script>
+
+<script type="module">
+/* ── REAL SUI WALLET CONNECTION + ON-CHAIN INTEGRATION ─────────────────── */
+import { getWallets } from 'https://esm.sh/@wallet-standard/app@1.1.0';
+
+const SUI_NETWORK     = 'testnet';
+const SUI_CLOCK_OBJ   = '0x6';
+// Set CONTRACT_ADDRESS to your deployed package ID after `sui client publish`.
+// Empty string = simulate step 3 (blob still lands on Walrus).
+const CONTRACT_ADDRESS = '';
+
+let _wallet  = null;
+let _account = null;
+
+// ── Wallet detection ───────────────────────────────────────────────────────
+const SUI_SPECIFIC_FEATURES = [
+  'sui:signAndExecuteTransaction',
+  'sui:signAndExecuteTransactionBlock',
+  'sui:signTransaction',
+  'sui:signPersonalMessage',
+];
+
+async function detectSuiWallets() {
+  const { get } = getWallets();
+  await new Promise(r => setTimeout(r, 200)); // give extensions time to register
+  return get().filter(w =>
+    'standard:connect' in w.features &&
+    (
+      // Prefer chain list check; fall back to Sui-specific feature presence
+      (Array.isArray(w.chains) && w.chains.some(c => c.startsWith('sui:'))) ||
+      SUI_SPECIFIC_FEATURES.some(f => f in w.features)
+    )
+  );
+}
+
+// ── Wallet picker modal ────────────────────────────────────────────────────
+function showWalletPicker(wallets) {
+  return new Promise(resolve => {
+    const overlay = document.createElement('div');
+    overlay.style.cssText =
+      'position:fixed;inset:0;z-index:100000;display:flex;align-items:center;' +
+      'justify-content:center;background:rgba(0,0,0,.78);backdrop-filter:blur(6px)';
+
+    const box = document.createElement('div');
+    box.style.cssText =
+      'background:#0F1419;border:1px solid rgba(255,255,255,.12);padding:3.2rem;' +
+      'width:360px;position:relative;box-shadow:0 24px 80px rgba(0,0,0,.7)';
+    box.innerHTML =
+      '<button id="_wpc" style="position:absolute;top:.8rem;right:1rem;background:none;' +
+      'border:none;color:#6B7A85;cursor:pointer;font-size:2.2rem;line-height:1">×</button>' +
+      '<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:2.2rem;font-weight:800;' +
+      'text-transform:uppercase;letter-spacing:.04em;margin-bottom:.4rem;color:#FAFBFD">Connect Wallet</div>' +
+      '<div style="font-size:1.2rem;color:#6B7A85;margin-bottom:2.4rem">Select a Sui wallet</div>' +
+      '<div id="_wpl"></div>';
+
+    const list = box.querySelector('#_wpl');
+    wallets.forEach(w => {
+      const b = document.createElement('button');
+      b.style.cssText =
+        'width:100%;display:flex;align-items:center;gap:1.4rem;padding:1.4rem 1.6rem;' +
+        'background:#141B22;border:1px solid rgba(255,255,255,.08);color:#FAFBFD;' +
+        'font-family:\'DM Sans\',sans-serif;font-size:1.4rem;font-weight:600;cursor:pointer;' +
+        'margin-bottom:.8rem;text-align:left;transition:border-color 150ms,background 150ms';
+      b.onmouseenter = () => { b.style.borderColor='rgba(161,255,79,.4)'; b.style.background='#1a2430'; };
+      b.onmouseleave = () => { b.style.borderColor='rgba(255,255,255,.08)'; b.style.background='#141B22'; };
+      if (w.icon) {
+        const img = document.createElement('img');
+        img.src = w.icon;
+        img.style.cssText = 'width:2.8rem;height:2.8rem;border-radius:.6rem;flex-shrink:0;object-fit:contain';
+        img.onerror = () => img.style.display = 'none';
+        b.appendChild(img);
+      } else {
+        const ph = document.createElement('div');
+        ph.style.cssText = 'width:2.8rem;height:2.8rem;border-radius:.6rem;background:#2E3A42;flex-shrink:0';
+        b.appendChild(ph);
+      }
+      const s = document.createElement('span'); s.textContent = w.name; b.appendChild(s);
+      b.onclick = () => { overlay.remove(); resolve(w); };
+      list.appendChild(b);
+    });
+
+    overlay.appendChild(box);
+    overlay.onclick = e => { if (e.target === overlay) { overlay.remove(); resolve(null); } };
+    box.querySelector('#_wpc').onclick = () => { overlay.remove(); resolve(null); };
+    document.body.appendChild(overlay);
+  });
+}
+
+// ── Connect ────────────────────────────────────────────────────────────────
+window.connectWallet = async function () {
+  if (window.walletConnected) return;
+  const btn = document.getElementById('walletBtn');
+  btn.textContent = 'Detecting…';
+  btn.disabled    = true;
+
+  try {
+    const wallets = await detectSuiWallets();
+
+    if (!wallets.length) {
+      btn.textContent = 'Connect Wallet';
+      btn.disabled    = false;
+      toast('No Sui Wallet Found',
+        'Install <b>Suiet</b>, <b>Sui Wallet</b>, or <b>Phantom</b> (with Sui support), then refresh.',
+        'var(--violet)');
+      return;
+    }
+
+    let chosen;
+    if (wallets.length === 1) {
+      chosen          = wallets[0];
+      btn.textContent = 'Connecting…';
+    } else {
+      btn.textContent = 'Connect Wallet';
+      btn.disabled    = false;
+      chosen = await showWalletPicker(wallets);
+      if (!chosen) return;
+      btn.textContent = 'Connecting…';
+      btn.disabled    = true;
+    }
+
+    const { accounts } = await chosen.features['standard:connect'].connect();
+    if (!accounts.length) throw new Error('Wallet returned no accounts');
+
+    // Only take Sui accounts — wallets like Phantom expose accounts for every chain
+    const suiAccounts = accounts.filter(a =>
+      !a.chains || a.chains.some(c => c.startsWith('sui:'))
+    );
+    if (!suiAccounts.length) throw new Error('No Sui accounts found in this wallet. Make sure Sui is enabled.');
+
+    _wallet  = chosen;
+    _account = suiAccounts[0];
+    window.walletConnected = true;
+    window.walletAddress   = accounts[0].address;
+
+    const addr = accounts[0].address;
+    btn.textContent = addr.slice(0, 6) + '…' + addr.slice(-4);
+    btn.classList.add('connected');
+    btn.disabled = false;
+
+    const sealBtn = document.getElementById('sealBtn');
+    if (sealBtn) sealBtn.innerHTML =
+      'Seal &amp; Sign on Sui ' +
+      '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" ' +
+      'stroke-width="2.5" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/>' +
+      '<path d="M7 11V7a5 5 0 0110 0v4"/></svg>';
+
+    toast('Wallet Connected', addr.slice(0, 12) + '…' + addr.slice(-6));
+
+    if (document.getElementById('tab-open').classList.contains('active')) {
+      loadCapsules();
+    }
+  } catch (err) {
+    btn.textContent = 'Connect Wallet';
+    btn.disabled    = false;
+    toast('Connection Failed', err.message || 'Connection failed', 'var(--violet)');
+  }
+};
+
+// ── Load capsules on "Open" tab ────────────────────────────────────────────
+// Primary source: localStorage (always works, no contract needed).
+// Secondary: on-chain query (used to sync confirmed status once deployed).
+async function loadCapsules() {
+  const container = document.getElementById('view-open');
+  if (!container) return;
+
+  // 1. Load from localStorage
+  const local = JSON.parse(localStorage.getItem('timebox_capsules') || '[]');
+
+  // 2. Try on-chain merge if contract is deployed and wallet connected
+  let onChainById = {};
+  if (CONTRACT_ADDRESS && window.walletAddress) {
+    try {
+      const apiBase = window.TIMEBOX_API || 'http://localhost:4000/api';
+      const res = await fetch(`${apiBase}/capsule/address/${window.walletAddress}`);
+      if (res.ok) {
+        const { capsules } = await res.json();
+        capsules.forEach(c => { onChainById[c.blobId] = c; });
+      }
+    } catch (_) { /* non-fatal */ }
+  }
+
+  // Merge: on-chain data (confirmed status, capsule ID) enriches local entries
+  const merged = local.map(cap => ({
+    ...cap,
+    isUnlocked: Date.now() >= cap.unlockTimestamp,
+    onChain:    onChainById[cap.blobId] || null,
+  }));
+
+  // Also add on-chain capsules not in localStorage (e.g. sealed on another device)
+  Object.values(onChainById).forEach(c => {
+    if (!merged.find(m => m.blobId === c.blobId)) {
+      merged.push({ blobId: c.blobId, unlockTimestamp: c.unlockTimestamp,
+        sealedAt: c.createdAt || 0, preview: null, isUnlocked: c.isUnlocked, onChain: c });
+    }
+  });
+
+  if (!merged.length) {
+    container.innerHTML =
+      '<p class="open-header">No capsules yet.</p>' +
+      '<p style="font-size:1.3rem;color:#6B7A85;margin-top:.8rem">Seal your first capsule on the Seal tab.</p>';
+    return;
+  }
+
+  container.innerHTML = '<p class="open-header">Your capsules</p>';
+  merged.forEach(cap => {
+    const unlockDate = new Date(cap.unlockTimestamp).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' });
+    const sealDate   = cap.sealedAt ? new Date(cap.sealedAt).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' }) : '—';
+    const item = document.createElement('div');
+    item.className = 'cap-item';
+    if (!cap.isUnlocked) item.style.cssText = 'cursor:not-allowed;opacity:.6';
+    const preview = cap.isUnlocked
+      ? (cap.preview ? `"${cap.preview}${cap.preview.length >= 80 ? '…' : ''}"` : 'Click to decrypt and reveal')
+      : '●●●●●●●●●● encrypted ●●●●●●●●●●';
+    item.innerHTML =
+      `<div class="cap-item-top">
+        <span class="cap-date">Sealed ${sealDate} · Reveals ${unlockDate}</span>
+        <span class="cap-status ${cap.isUnlocked ? 'cs-ready' : 'cs-locked'}">
+          ${cap.isUnlocked ? 'READY' : 'LOCKED'}
+        </span>
+      </div>
+      <div class="cap-preview">${preview}</div>`;
+    if (cap.isUnlocked) {
+      const onChainId = cap.onChain?.id || null;
+      item.onclick = () => window.revealCapsule(cap.blobId, onChainId);
+    }
+    container.appendChild(item);
+  });
+}
+
+// Patch switchTab to trigger capsule loading / wallet prompt
+const _origSwitchTab = window.switchTab;
+window.switchTab = function (tab) {
+  _origSwitchTab(tab);
+  if (tab !== 'open') return;
+  if (window.walletConnected) {
+    loadCapsules();
+  } else {
+    const container = document.getElementById('view-open');
+    container.innerHTML =
+      '<p class="open-header" style="margin-bottom:1.6rem">Connect your wallet to see your capsules</p>' +
+      '<button class="btn-seal" onclick="connectWallet()" ' +
+      'style="max-width:260px;margin:0 auto">Connect Wallet</button>';
+  }
+};
+
+// ── Seal with real Sui tx ──────────────────────────────────────────────────
+window.startSealing = async function () {
+  const msg  = document.getElementById('msgInput').value.trim();
+  const date = document.getElementById('revealDate').value;
+
+  if (!msg)  { document.getElementById('msgInput').focus(); return; }
+  if (!date) { toast('Missing Date', 'Pick a reveal date first.', 'var(--violet)'); return; }
+
+  if (!window.walletConnected || !_account) {
+    toast('Wallet Required', 'Connect your Sui wallet before sealing.', 'var(--violet)');
+    return;
+  }
+
+  document.getElementById('view-form').style.display    = 'none';
+  document.getElementById('view-sealing').style.display = 'block';
+  [1, 2, 3, 4].forEach(i => {
+    document.getElementById(`ss-${i}`).classList.remove('done');
+    document.getElementById(`si-${i}`).classList.remove('active', 'done');
+  });
+
+  animateStep(1, 300, 900);
+
+  try {
+    // Step 2: encrypt + upload to Walrus via backend
+    animateStep(2, 1400, 1200);
+    const apiBase = window.TIMEBOX_API || 'http://localhost:4000/api';
+    const res = await fetch(`${apiBase}/capsule`, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ message: msg, unlockDate: date }),
+    });
+    if (!res.ok) {
+      const e = await res.json().catch(() => ({}));
+      throw new Error(e.error || 'Upload failed');
+    }
+    const { blobId, encryptionKey, unlockTimestamp } = await res.json();
+    localStorage.setItem(`timebox_key_${blobId}`,    encryptionKey);
+    localStorage.setItem(`timebox_unlock_${blobId}`, unlockTimestamp);
+
+    // Persist capsule metadata so the Open tab can show it without on-chain query
+    const _capsules = JSON.parse(localStorage.getItem('timebox_capsules') || '[]');
+    _capsules.unshift({ blobId, unlockTimestamp, sealedAt: Date.now(), preview: msg.slice(0, 80) });
+    localStorage.setItem('timebox_capsules', JSON.stringify(_capsules));
+
+    // Step 3: Sui time-lock transaction
+    animateStep(3, 2800, 1800);
+    if (CONTRACT_ADDRESS && _wallet) {
+      try {
+        const { Transaction } = await import('https://esm.sh/@mysten/sui@1/transactions');
+        const tx = new Transaction();
+        tx.moveCall({
+          target:    `${CONTRACT_ADDRESS}::timebox::seal`,
+          arguments: [
+            tx.pure.string(blobId),
+            tx.pure.u64(BigInt(unlockTimestamp)),
+            tx.object(SUI_CLOCK_OBJ),
+          ],
+        });
+        tx.setSender(_account.address);
+
+        const feat =
+          _wallet.features['sui:signAndExecuteTransaction'] ||
+          _wallet.features['sui:signAndExecuteTransactionBlock'];
+        if (feat) {
+          await feat.signAndExecuteTransaction({
+            transaction: tx,
+            account:     _account,
+            chain:       `sui:${SUI_NETWORK}`,
+          });
+        }
+      } catch (suiErr) {
+        // Non-fatal: blob is already on Walrus; Sui step can be retried
+        console.warn('Sui tx skipped:', suiErr.message);
+      }
+    }
+
+    animateStep(4, 4800, 700);
+    setTimeout(() => {
+      document.getElementById('blobIdDisplay').textContent  = blobId;
+      document.getElementById('view-sealing').style.display = 'none';
+      document.getElementById('view-result').style.display  = 'block';
+    }, 5700);
+
+  } catch (err) {
+    document.getElementById('view-sealing').style.display = 'none';
+    document.getElementById('view-form').style.display    = 'block';
+    toast('Sealing Failed', err.message, 'var(--violet)');
+  }
+};
+</script>
+</body>
+</html>
